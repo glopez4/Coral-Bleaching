@@ -1,0 +1,80 @@
+---
+title: "BIOST 79 Figures"
+author: "Gabby Lopez"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyverse)
+library(rigr)
+library(ggplot2)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(hcbc)
+```
+
+Thermal Stress
+
+```{r pressure, echo=FALSE}
+thermal <- hcbc %>% filter(!is.na(DHW.MeanMax_Degree_Heating_Weeks_MO03) | !is.na(DHW.MeanMax_Degree_Heating_Weeks_YR10YR01) | !is.na(mean_weekly_range_SST_CRW_Daily_ALLB4) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
+
+thermal <- thermal %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
+
+reg1 <- glm(Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa,
+            family = poisson,
+            data = thermal,
+            offset = log(AreaSurveyed_m2_sum))
+reg1
+
+reg2 <- regress("rate", Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa,
+                data = thermal,
+                offset = log(AreaSurveyed_m2_sum))
+reg2
+```
+
+Human Activity
+```{r}
+human <- hcbc %>% filter(!is.na(LBSP_AgGolf_runoff_01_sc) | !is.na(LBSP_Urban_runoff_01_sc) | !is.na(TourRec_DirectHuman_10yrAvgPUD) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
+
+human <- human %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
+
+reg3 <- regress("rate", Affected ~ LBSP_AgGolf_runoff_01_sc + LBSP_Urban_runoff_01_sc + TourRec_DirectHuman_10yrAvgPUD + LBSP_AgGolf_runoff_01_sc:Prop_BleachResTaxa + LBSP_Urban_runoff_01_sc:Prop_BleachResTaxa + TourRec_DirectHuman_10yrAvgPUD:Prop_BleachResTaxa,
+                data = human,
+                offset = log(AreaSurveyed_m2_sum))
+reg3
+```
+
+PAR
+```{r}
+par <- hcbc %>% filter(!is.na(mean_PAR_MODIS_Daily_MO03) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
+
+par <- par %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
+
+reg4 <- regress("rate", Affected ~ mean_PAR_MODIS_Daily_MO03 + Depth_m_mn + mean_PAR_MODIS_Daily_MO03:Prop_BleachResTaxa,
+                data = par,
+                offset = log(AreaSurveyed_m2_sum))
+reg4
+```
+
+Location
+```{r}
+location <- hcbc %>% filter(!is.na(Island_Name) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
+
+location <- location %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
+
+reg5 <- regress("rate", Affected ~ Island_Name + Island_Name:Prop_BleachResTaxa,
+                data = location,
+                offset = log(AreaSurveyed_m2_sum))
+reg5
+```
+

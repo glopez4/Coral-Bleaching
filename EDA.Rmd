@@ -1,0 +1,42 @@
+---
+title: "Coral Bleaching EDA"
+output: html_document
+date: "2024-04-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rigr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(mgcv)
+```
+
+```{r cars}
+hcbc <- read_csv('HCBC_2015_ClusterData_Observations.csv')
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+hcbc <- hcbc %>%
+  mutate(PropAffected_mean = PctAffected_mean / 100)
+
+ggplot(aes(x=mean_weekly_range_SST_CRW_Daily_ALLB4, y=PctAffected_mean), data=hcbc) + geom_point()
+
+ggplot(data=hcbc, aes(x=))
+
+lm1 <- regress('rate', PropAffected_mean ~ mean_weekly_range_SST_CRW_Daily_ALLB4 + Prop_BleachResTaxa +
+                 Correlation_Weight, data=hcbc)
+lm1
+
+gam_model <- gam(PctAffected_mean ~ s(DHW.MeanMax_Degree_Heating_Weeks_YR10YR01) +
+                   + s(mean_weekly_range_SST_CRW_Daily_ALLB4) + s(DHW.MeanMax_Degree_Heating_Weeks_MO03) +                     s(Correlation_Weight) + s(Prop_BleachResTaxa), family = betar(link = "logit"), data=hcbc)
+
+summary(gam_model)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
