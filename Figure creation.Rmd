@@ -78,3 +78,15 @@ reg5 <- regress("rate", Affected ~ Island_Name + Island_Name:Prop_BleachResTaxa,
 reg5
 ```
 
+```{r}
+thermal %>% ggplot(aes(x = DHW.MeanMax_Degree_Heating_Weeks_MO03, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point() 
+thermal %>% ggplot(aes(x = mean_weekly_range_SST_CRW_Daily_ALLB4, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point() 
+
+human %>% ggplot(aes(x = LBSP_AgGolf_runoff_01_sc, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point()
+human %>% ggplot(aes(x = LBSP_Urban_runoff_01_sc, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point()
+human %>% ggplot(aes(x = TourRec_DirectHuman_10yrAvgPUD, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point()
+
+par %>% ggplot(aes(x = mean_PAR_MODIS_Daily_MO03, y = PctAffected_mean, col = factor(DepthBin_5m))) + geom_point() + labs(x='Mean Daily PAR (umol/sec)', y='Percent of Bleached Coral (%)', main='PAR levels and Percentage of Bleached Coral by Bathymetric Depth') + scale_colour_discrete(name='Bathymetric Depth (m)', breaks=c("[0,5]","(5,10]","(10,15]"), labels=c("<= 5","> 5 and <= 10","> 10 and <= 15")) + geom_jitter()
+par %>% ggplot(aes(x = mean_PAR_MODIS_Daily_MO03, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point(aes(shape=factor(DepthBin_5m)))
+```
+

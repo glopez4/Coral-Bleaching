@@ -1,0 +1,33 @@
+---
+title: "BIOST 579 Milestone 6"
+author: "Gabby Lopez"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyverse)
+library(rigr)
+library(ggplot2)
+```
+
+
+```{r, echo=FALSE}
+hcbc <- read.csv('HCBC_2015_ClusterData_Observations.csv')
+hcbc <- hcbc %>%
+  mutate(PropAffected_mean = PctAffected_mean / 100)
+par <- hcbc %>% filter(!is.na(mean_PAR_MODIS_Daily_MO03) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
+
+par <- par %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
+```
+
+```{r, echo=FALSE, fig.width=8, fig.height=5}
+par %>% ggplot(aes(x = mean_PAR_MODIS_Daily_MO03, y = PctAffected_mean, col = factor(DepthBin_5m))) + geom_point() + labs(x='Mean Daily PAR (umol/sec)', y='Percent of Bleached Coral (%)', title='PAR levels and Percentage of Bleached Coral by Bathymetric Depth') + scale_colour_discrete(name='Bathymetric Depth (m)', breaks=c("[0,5]","(5,10]","(10,15]"), labels=c("<= 5","> 5 and <= 10","> 10 and <= 15")) + geom_jitter()
+```
+
+The figure above shows the relationship between mean daily Photosynthetically Active Radiation (PAR) levels and percentage of bleached coral among clustered surveyed sites. PAR measurements are taken at the water's surface, in micromoles per second, and the amount of radiation reaching the coral reef down below depends on the level of PAR and the depth of the water. PAR levels were recorded daily over the three months prior to surveying and the mean of these daily levels is used in the figure above. Bathymetric depth is recorded in meters and is discretized in groups for every 5 meters. The percentage of bleached coral includes both partially and fully bleached coral at the survey sites. Overall, there appears to be a positive linear association for all three groups of bathymetric depth when comparing mean daily PAR and percent of bleached coral.
+
+
+We had initially planned to include proportion of bleached taxa as an effect modifier for all of our outcomes. However, when I was creating these figures, there didn't seem to be any logical pattern to the relationships we are looking at in our objectives and the varying proportions of bleached taxa among the clustered survey sites. However, there did seem to be more of a pattern when looking at bathymetric depth. This is something we'll have to look into more before we continue with our analysis.
