@@ -11,74 +11,169 @@ library(dplyr)
 library(tidyverse)
 library(rigr)
 library(ggplot2)
+library(gtsummary)
+library(gapminder)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+hcbc <- read_csv('HCBC_2015_ClusterData_Observations.csv')
+hcbc <- hcbc %>%
+  mutate(PropAffected_mean = PctAffected_mean / 100)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+hcbc <- hcbc %>% mutate(Prop_LiveCoral = PercentLiveCoralCover_mean / 100) %>%
+  mutate(LiveCoral = Prop_LiveCoral * AreaSurveyed_m2_sum) %>%
+  mutate(Affected = PropAffected_mean * LiveCoral) %>% 
+  mutate(LiveCoral = round(LiveCoral)) %>% 
+  filter(LiveCoral > 0) %>% 
+  mutate(Affected = round(Affected))
 
-```{r cars}
 summary(hcbc)
+
+my_theme <-
+  list(
+    "tbl_summary-str:default_con_type" = "continuous2",
+    "tbl_summary-str:continuous_stat" = c(
+      "{median} ({p25} - {p75})",
+      "{mean} ({sd})",
+      "{min} - {max}"
+    ),
+    "style_number-arg:big.mark" = "",
+    "tbl_summary-fn:percent_fun" = function(x) style_percent(x, digits = 3)
+  )
+gtsummary::set_gtsummary_theme(my_theme)
+
+hcbc %>%  select(c('Island_Name','Depth_m_mn','AreaSurveyed_m2_sum','LiveCoral','PctAffected_mean','PctCoralPartialBleached_mean','PctCoralFullyBleached_mean','Prop_BleachResTaxa')) %>%
+  gtsummary::tbl_summary(
+    by = Island_Name, 
+    include=c(Depth_m_mn, AreaSurveyed_m2_sum, LiveCoral, PctAffected_mean, PctCoralPartialBleached_mean, PctCoralFullyBleached_mean, Prop_BleachResTaxa),
+    list(
+      Depth_m_mn ~ 'Bathymetric Depth (m)',
+      AreaSurveyed_m2_sum ~ 'Area Surveyed (m2)',
+      LiveCoral ~ 'Live Coral Cover (m)',
+      PctAffected_mean ~ 'Percent Bleached',
+      PctCoralPartialBleached_mean ~ 'Percent Partially Bleached',
+      PctCoralFullyBleached_mean ~ 'Percent Fully Bleached',
+      Prop_BleachResTaxa ~ 'Proportion of Bleach Resistant Taxa'
+    ),
+    type = all_continuous() ~ "continuous2",
+    statistic = all_continuous() ~ c(
+      "{median} ({min}, {max})"
+    )
+  ) %>%
+  add_n() %>%
+  bold_labels() %>%
+  modify_header(label ~ "**Island**")
+
+hcbc %>%  select(c('Depth_m_mn','AreaSurveyed_m2_sum','LiveCoral','PctAffected_mean','PctCoralPartialBleached_mean','PctCoralFullyBleached_mean','Prop_BleachResTaxa')) %>%
+  gtsummary::tbl_summary(
+    include=everything(),
+    label=list(
+      Depth_m_mn ~ 'Bathymetric Depth (m)',
+      AreaSurveyed_m2_sum ~ 'Area Surveyed (m2)',
+      LiveCoral ~ 'Live Coral Cover (m)',
+      PctAffected_mean ~ 'Percent Bleached',
+      PctCoralPartialBleached_mean ~ 'Percent Partially Bleached',
+      PctCoralFullyBleached_mean ~ 'Percent Fully Bleached',
+      Prop_BleachResTaxa ~ 'Proportion of Bleach Resistant Taxa'
+    ),
+    type = all_continuous() ~ "continuous2",
+    statistic = all_continuous() ~ c(
+      "{median} ({min}, {max})"
+    )
+  ) %>%
+  add_n() %>%
+  bold_labels()
+  
+hcbc %>%  select(c('Island_Name','Depth_m_mn','AreaSurveyed_m2_sum','LiveCoral','PctAffected_mean','PctCoralPartialBleached_mean','PctCoralFullyBleached_mean','Prop_BleachResTaxa','DHW.MeanMax_Degree_Heating_Weeks_MO03','DHW.MeanMax_Degree_Heating_Weeks_YR10YR01','mean_weekly_range_SST_CRW_Daily_ALLB4','LBSP_AgGolf_runoff_01_sc','LBSP_Urban_runoff_01_sc','TourRec_DirectHuman_10yrAvgPUD','mean_PAR_MODIS_Daily_MO03')) %>%
+  gtsummary::tbl_summary(
+    by = Island_Name, 
+    include=c(Depth_m_mn, AreaSurveyed_m2_sum, LiveCoral, PctAffected_mean, PctCoralPartialBleached_mean, PctCoralFullyBleached_mean, Prop_BleachResTaxa,DHW.MeanMax_Degree_Heating_Weeks_MO03,DHW.MeanMax_Degree_Heating_Weeks_YR10YR01,mean_weekly_range_SST_CRW_Daily_ALLB4,LBSP_AgGolf_runoff_01_sc,LBSP_Urban_runoff_01_sc,TourRec_DirectHuman_10yrAvgPUD,mean_PAR_MODIS_Daily_MO03),
+    list(
+      Depth_m_mn ~ 'Bathymetric Depth (m)',
+      AreaSurveyed_m2_sum ~ 'Area Surveyed (m2)',
+      LiveCoral ~ 'Live Coral Cover (m)',
+      PctAffected_mean ~ 'Percent Bleached',
+      PctCoralPartialBleached_mean ~ 'Percent Partially Bleached',
+      PctCoralFullyBleached_mean ~ 'Percent Fully Bleached',
+      Prop_BleachResTaxa ~ 'Proportion of Bleach Resistant Taxa',
+      DHW.MeanMax_Degree_Heating_Weeks_MO03 ~ 'DHW (3 months)',
+      DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 ~ 'DHW (10 years)',
+      mean_weekly_range_SST_CRW_Daily_ALLB4 ~ 'Mean Weekly SST Range (C)',
+      LBSP_AgGolf_runoff_01_sc ~ 'Agricultural Runoff',
+      LBSP_Urban_runoff_01_sc ~ 'Urban Runoff',
+      TourRec_DirectHuman_10yrAvgPUD ~ 'Tourism (10 years)',
+      mean_PAR_MODIS_Daily_MO03 ~ 'PAR level'
+    ),
+    type = all_continuous() ~ "continuous2",
+    statistic = all_continuous() ~ c(
+      "{median} ({min}, {max})"
+    )
+  ) %>%
+  add_n() %>%
+  bold_labels() %>%
+  modify_header(label ~ "**Island**")
 ```
 
 Thermal Stress
 
 ```{r pressure, echo=FALSE}
-thermal <- hcbc %>% filter(!is.na(DHW.MeanMax_Degree_Heating_Weeks_MO03) | !is.na(DHW.MeanMax_Degree_Heating_Weeks_YR10YR01) | !is.na(mean_weekly_range_SST_CRW_Daily_ALLB4) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
-
-thermal <- thermal %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
-
 reg1 <- glm(Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa,
             family = poisson,
-            data = thermal,
-            offset = log(AreaSurveyed_m2_sum))
+            data = hcbc,
+            offset = log(LiveCoral))
 reg1
 
-reg2 <- regress("rate", Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa,
-                data = thermal,
-                offset = log(AreaSurveyed_m2_sum))
+reg2 <- regress("rate", Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa +
+DHW.MeanMax_Degree_Heating_Weeks_MO03:Depth_m_mn + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Depth_m_mn + mean_weekly_range_SST_CRW_Daily_ALLB4:Depth_m_mn,
+                data = hcbc,
+                offset = log(LiveCoral))
 reg2
+
+reg02 <- regress("rate", Affected ~ DHW.MeanMax_Degree_Heating_Weeks_MO03 + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01 + mean_weekly_range_SST_CRW_Daily_ALLB4 + DHW.MeanMax_Degree_Heating_Weeks_MO03:Prop_BleachResTaxa + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:Prop_BleachResTaxa + mean_weekly_range_SST_CRW_Daily_ALLB4:Prop_BleachResTaxa +
+DHW.MeanMax_Degree_Heating_Weeks_MO03:DepthBin_5m + DHW.MeanMax_Degree_Heating_Weeks_YR10YR01:DepthBin_5m + mean_weekly_range_SST_CRW_Daily_ALLB4:DepthBin_5m,
+                data = hcbc,
+                offset = log(LiveCoral))
+reg02
 ```
 
 Human Activity
 ```{r}
-human <- hcbc %>% filter(!is.na(LBSP_AgGolf_runoff_01_sc) | !is.na(LBSP_Urban_runoff_01_sc) | !is.na(TourRec_DirectHuman_10yrAvgPUD) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
-
-human <- human %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
-
-reg3 <- regress("rate", Affected ~ LBSP_AgGolf_runoff_01_sc + LBSP_Urban_runoff_01_sc + TourRec_DirectHuman_10yrAvgPUD + LBSP_AgGolf_runoff_01_sc:Prop_BleachResTaxa + LBSP_Urban_runoff_01_sc:Prop_BleachResTaxa + TourRec_DirectHuman_10yrAvgPUD:Prop_BleachResTaxa,
-                data = human,
-                offset = log(AreaSurveyed_m2_sum))
+reg3 <- regress("rate", Affected ~ LBSP_AgGolf_runoff_01_sc + LBSP_Urban_runoff_01_sc + TourRec_DirectHuman_10yrAvgPUD + LBSP_AgGolf_runoff_01_sc:Prop_BleachResTaxa + LBSP_Urban_runoff_01_sc:Prop_BleachResTaxa + TourRec_DirectHuman_10yrAvgPUD:Prop_BleachResTaxa +
+LBSP_AgGolf_runoff_01_sc:Depth_m_mn + LBSP_Urban_runoff_01_sc:Depth_m_mn + TourRec_DirectHuman_10yrAvgPUD:Depth_m_mn,
+                data = hcbc,
+                offset = log(LiveCoral))
 reg3
+
+reg03 <- regress("rate", Affected ~ LBSP_AgGolf_runoff_01_sc + LBSP_Urban_runoff_01_sc + TourRec_DirectHuman_10yrAvgPUD + LBSP_AgGolf_runoff_01_sc:Prop_BleachResTaxa + LBSP_Urban_runoff_01_sc:Prop_BleachResTaxa + TourRec_DirectHuman_10yrAvgPUD:Prop_BleachResTaxa +
+LBSP_AgGolf_runoff_01_sc:DepthBin_5m + LBSP_Urban_runoff_01_sc:DepthBin_5m + TourRec_DirectHuman_10yrAvgPUD:DepthBin_5m,
+                data = hcbc,
+                offset = log(LiveCoral))
+reg03
 ```
 
 PAR
 ```{r}
-par <- hcbc %>% filter(!is.na(mean_PAR_MODIS_Daily_MO03) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
-
-par <- par %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
-
-reg4 <- regress("rate", Affected ~ mean_PAR_MODIS_Daily_MO03 + Depth_m_mn + mean_PAR_MODIS_Daily_MO03:Prop_BleachResTaxa,
-                data = par,
-                offset = log(AreaSurveyed_m2_sum))
+reg4 <- regress("rate", Affected ~ mean_PAR_MODIS_Daily_MO03 + mean_PAR_MODIS_Daily_MO03:Prop_BleachResTaxa + mean_PAR_MODIS_Daily_MO03:Depth_m_mn,
+                data = hcbc,
+                offset = log(LiveCoral))
 reg4
+
+reg04 <- regress("rate", Affected ~ mean_PAR_MODIS_Daily_MO03 + mean_PAR_MODIS_Daily_MO03:Prop_BleachResTaxa + mean_PAR_MODIS_Daily_MO03:DepthBin_5m,
+                data = hcbc,
+                offset = log(LiveCoral))
+reg04
 ```
 
 Location
 ```{r}
-location <- hcbc %>% filter(!is.na(Island_Name) | !is.na(Prop_BleachResTaxa) | !is.na(Depth_m_mn) | !is.na(PropAffected_mean) | !is.na(AreaSurveyed_m2_sum)) %>% mutate(Affected = PropAffected_mean * AreaSurveyed_m2_sum)
-
-location <- location %>% filter(Affected > 0 & AreaSurveyed_m2_sum > 0) %>% mutate(Affected = round(Affected))
-
-reg5 <- regress("rate", Affected ~ Island_Name + Island_Name:Prop_BleachResTaxa,
-                data = location,
-                offset = log(AreaSurveyed_m2_sum))
+reg5 <- regress("rate", Affected ~ Island_Name + Island_Name:Prop_BleachResTaxa + Island_Name:Depth_m_mn,
+                data = hcbc,
+                offset = log(LiveCoral))
 reg5
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 thermal %>% ggplot(aes(x = DHW.MeanMax_Degree_Heating_Weeks_MO03, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point() 
 thermal %>% ggplot(aes(x = mean_weekly_range_SST_CRW_Daily_ALLB4, y = PropAffected_mean, col = Prop_BleachResTaxa)) + geom_point() 
 
