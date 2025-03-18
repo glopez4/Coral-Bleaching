@@ -1,1 +1,2 @@
 # Coral-Bleaching
+This project investigates the 2015 coral bleaching events across the Hawaiian Archipelago. This included analyzing the extent of bleaching among the different islands and evaluting the impact of human activity, ocean temperature, and Photoshyntetically Active Radiation (PAR). The data was provided by the National Oceanic and Atmospheric Administration (NOAA) Department of Commerce and contains clustered survey data regarding potential drivers of the 2015 bleaching event from October 2 to November 18.
